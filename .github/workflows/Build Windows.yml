@@ -8,9 +8,12 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: simple_live_app  # 关键：所有 run 步骤默认在子目录执行
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4  # 克隆到根目录
 
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
@@ -18,9 +21,6 @@ jobs:
         flutter-version: '3.22.0'
         channel: stable
         cache: true
-
-    - name: Change to app directory
-      run: cd simple_live_app
 
     - name: Enable Windows desktop
       run: flutter config --enable-windows-desktop
@@ -33,13 +33,13 @@ jobs:
         flutter pub get
 
     - name: Check Flutter doctor (debug)
-      run: flutter doctor -v  # 检查环境，日志会显示 VS/工具状态
+      run: flutter doctor -v  # 检查环境（VS 等工具）
 
     - name: Build Windows
-      run: flutter build windows --release --verbose  # verbose 捕获详细日志
+      run: flutter build windows --release --verbose  # 详细日志
 
     - name: List build files (debug)
-      run: dir build\windows\runner\Release\  # 或 echo "Files: $(ls build/windows/runner/Release/)" 但用 dir
+      run: dir build\windows\runner\Release\
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -49,4 +49,4 @@ jobs:
           build/windows/runner/Release/**
           build/windows/**/*.exe
           build/windows/**/*.msix
-        if-no-files-found: warn  # 警告但不失败
+        if-no-files-found: warn
