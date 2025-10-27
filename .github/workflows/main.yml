@@ -3,33 +3,52 @@ name: Build Windows
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:  # 手动触发
 
 jobs:
   build:
-    runs-on: windows-latest  # 使用 Windows 虚拟机
+    runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4  # 克隆仓库
+    - uses: actions/checkout@v4
 
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.22.0'  # 项目推荐版本
+        flutter-version: '3.22.0'
         channel: stable
+        cache: true  # 加速依赖
+
+    - name: Enable Windows desktop
+      run: flutter config --enable-windows-desktop
 
     - name: Install dependencies
       run: |
         cd simple_live_app
-        flutter pub get  # 中国用户可改成 flutter pub get --registry=https://pub.flutter-io.cn
+        flutter clean
+        flutter pub get --registry=https://pub.flutter-io.cn  # 中国镜像加速
+
+    - name: Install Visual Studio Build Tools (for Windows)
+      run: |
+        choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools"
+        # 或用 winget: winget install Microsoft.VisualStudio.2022.BuildTools
 
     - name: Build Windows
       run: |
         cd simple_live_app
         flutter build windows --release
 
+    - name: List build files (debug)
+      run: |
+        cd simple_live_app
+        dir build\windows\runner\Release\  # Windows dir 命令查看文件
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windows-build
-        path: simple_live_app/build/windows/runner/Release/
+        path: |
+          simple_live_app/build/windows/runner/Release/**
+          simple_live_app/build/windows/**/*.exe
+          simple_live_app/build/windows/**/*.msix
+        if-no-files-found: ignore  # 即使空也上传（但会警告）
