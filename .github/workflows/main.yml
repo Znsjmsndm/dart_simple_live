@@ -17,39 +17,36 @@ jobs:
       with:
         flutter-version: '3.22.0'
         channel: stable
-        cache: true  # 加速依赖
+        cache: true
+
+    - name: Change to app directory
+      run: cd simple_live_app
 
     - name: Enable Windows desktop
       run: flutter config --enable-windows-desktop
 
     - name: Install dependencies
       run: |
-        cd simple_live_app
         flutter clean
         set PUB_HOSTED_URL=https://pub.flutter-io.cn
         set FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
-        flutter pub get  # 无 flag，用环境变量镜像加速
+        flutter pub get
 
-    - name: Install Visual Studio Build Tools (for Windows)
-      run: |
-        choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools"
+    - name: Check Flutter doctor (debug)
+      run: flutter doctor -v  # 检查环境，日志会显示 VS/工具状态
 
     - name: Build Windows
-      run: |
-        cd simple_live_app
-        flutter build windows --release
+      run: flutter build windows --release --verbose  # verbose 捕获详细日志
 
     - name: List build files (debug)
-      run: |
-        cd simple_live_app
-        dir build\windows\runner\Release\  # 查看生成的文件
+      run: dir build\windows\runner\Release\  # 或 echo "Files: $(ls build/windows/runner/Release/)" 但用 dir
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windows-build
         path: |
-          simple_live_app/build/windows/runner/Release/**
-          simple_live_app/build/windows/**/*.exe
-          simple_live_app/build/windows/**/*.msix
-        if-no-files-found: ignore
+          build/windows/runner/Release/**
+          build/windows/**/*.exe
+          build/windows/**/*.msix
+        if-no-files-found: warn  # 警告但不失败
