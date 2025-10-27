@@ -26,12 +26,13 @@ jobs:
       run: |
         cd simple_live_app
         flutter clean
-        flutter pub get --registry=https://pub.flutter-io.cn  # 中国镜像加速
+        set PUB_HOSTED_URL=https://pub.flutter-io.cn
+        set FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+        flutter pub get  # 无 flag，用环境变量镜像加速
 
     - name: Install Visual Studio Build Tools (for Windows)
       run: |
         choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools"
-        # 或用 winget: winget install Microsoft.VisualStudio.2022.BuildTools
 
     - name: Build Windows
       run: |
@@ -41,7 +42,7 @@ jobs:
     - name: List build files (debug)
       run: |
         cd simple_live_app
-        dir build\windows\runner\Release\  # Windows dir 命令查看文件
+        dir build\windows\runner\Release\  # 查看生成的文件
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -51,4 +52,4 @@ jobs:
           simple_live_app/build/windows/runner/Release/**
           simple_live_app/build/windows/**/*.exe
           simple_live_app/build/windows/**/*.msix
-        if-no-files-found: ignore  # 即使空也上传（但会警告）
+        if-no-files-found: ignore
