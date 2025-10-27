@@ -1,0 +1,35 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: windows-latest  # 使用 Windows 虚拟机
+
+    steps:
+    - uses: actions/checkout@v4  # 克隆仓库
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.22.0'  # 项目推荐版本
+        channel: stable
+
+    - name: Install dependencies
+      run: |
+        cd simple_live_app
+        flutter pub get  # 中国用户可改成 flutter pub get --registry=https://pub.flutter-io.cn
+
+    - name: Build Windows
+      run: |
+        cd simple_live_app
+        flutter build windows --release
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-build
+        path: simple_live_app/build/windows/runner/Release/
